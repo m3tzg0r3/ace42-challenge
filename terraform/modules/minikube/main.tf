@@ -13,7 +13,14 @@ resource "null_resource" "minikube_cluster" {
   }
 }
 
-data "external" "minikube_ip" {
-  program = ["sh", "-c", "echo '{\"ip\":\"'$(minikube ip --profile=${var.environment})'\"}'"]
+resource "null_resource" "switch_minikube_profile" {
   depends_on = [null_resource.minikube_cluster]
+  provisioner "local-exec" {
+    command = "minikube profile ${var.environment}"
+  }
+}
+
+data "external" "minikube_ip" {
+  depends_on = [null_resource.minikube_cluster]
+  program = ["sh", "-c", "echo '{\"ip\":\"'$(minikube ip --profile=${var.environment})'\"}'"]
 }

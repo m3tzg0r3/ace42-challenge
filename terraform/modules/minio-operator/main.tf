@@ -6,6 +6,9 @@ resource "helm_release" "minio_operator" {
   create_namespace = true
   version          = var.chart_version
 
+  wait             = true
+  wait_for_jobs    = true
+
   set {
     name  = "tenants.enabled"
     value = tostring(var.tenants_enabled)

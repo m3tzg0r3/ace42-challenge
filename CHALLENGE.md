@@ -17,3 +17,9 @@ This section serves as kind of a step by step log of what i did to make this wor
 
  1. Set up a folder structure in the repo to organize files into.
  2. Think about how i want to structure the terraform manifest files, end up creating a `environments` and `modules` folder.
+ 3. Create minikube terraform module and local env terraform manifest to create the minikube cluster for the local dev env.
+ 4. Switch to helm charts, start with MinIO.
+ 5. Read Documentation about MinIO, find helm chart to deploy MinIO operator - follow that. (https://min.io/docs/minio/kubernetes/upstream/operations/install-deploy-manage/deploy-operator-helm.html#)
+ 6. Build terraform module to install MinIO operator.
+ 7. 
+
