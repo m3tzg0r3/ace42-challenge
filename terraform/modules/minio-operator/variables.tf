@@ -10,7 +10,7 @@ variable "operator_namespace" {
 
 variable "chart_version" {
   description = "Version of the MinIO Operator Helm chart"
-  default     = "5.0.11"
+  default     = "6.0.1"
 }
 
 variable "tenants_enabled" {
@@ -25,16 +25,10 @@ variable "console_enabled" {
   default     = true
 }
 
-variable "additional_set_configs" {
-  description = "Additional set configurations for the operator"
-  type        = list(object({ name = string, value = string }))
-  default     = []
-}
-
 variable "create_tenant" {
   description = "Whether to create a MinIO tenant"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "tenant_release_name" {
@@ -49,28 +43,39 @@ variable "tenant_namespace" {
 
 variable "tenant_name" {
   description = "Name of the MinIO tenant"
-  default     = "minio1"
+  default     = "minio-tenant"
+}
+
+variable "tenant_pool_name" {
+  description = "Name of the tenant pool"
+  default     = "pool-0"
 }
 
 variable "tenant_servers" {
   description = "Number of MinIO servers"
   type        = number
-  default     = 4
+  default     = 1
 }
 
 variable "tenant_volumes_per_server" {
   description = "Number of volumes per MinIO server"
   type        = number
-  default     = 4
+  default     = 1
 }
 
 variable "tenant_volume_size" {
   description = "Size of each volume"
-  default     = "10Gi"
+  default     = "100Mi"
+}
+
+variable "additional_operator_configs" {
+  description = "Additional set configurations for the operator"
+  type        = map(string)
+  default     = {}
 }
 
 variable "additional_tenant_configs" {
   description = "Additional set configurations for the tenant"
-  type        = list(object({ name = string, value = string }))
-  default     = []
+  type        = map(string)
+  default     = {}
 }

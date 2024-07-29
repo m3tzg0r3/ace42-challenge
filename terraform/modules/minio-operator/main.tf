@@ -1,3 +1,18 @@
+locals {
+  operator_settings = {
+    "tenants.enabled"  = var.tenants_enabled
+    "console.enabled"  = var.console_enabled
+  }
+
+  tenant_settings = var.create_tenant ? {
+    "tenant.name"                       = var.tenant_name
+    "tenant.pools[0].name"              = var.tenant_pool_name
+    "tenant.pools[0].servers"           = var.tenant_servers
+    "tenant.pools[0].volumesPerServer"  = var.tenant_volumes_per_server
+    "tenant.pools[0].size"              = var.tenant_volume_size
+  } : {}
+}
+
 resource "helm_release" "minio_operator" {
   name             = var.operator_release_name
   repository       = "https://operator.min.io/"
@@ -9,21 +24,11 @@ resource "helm_release" "minio_operator" {
   wait             = true
   wait_for_jobs    = true
 
-  set {
-    name  = "tenants.enabled"
-    value = tostring(var.tenants_enabled)
-  }
-
-  set {
-    name  = "console.enabled"
-    value = tostring(var.console_enabled)
-  }
-
   dynamic "set" {
-    for_each = var.additional_set_configs
+    for_each = merge(local.operator_settings, var.additional_operator_configs)
     content {
-      name  = set.value.name
-      value = set.value.value
+      name  = set.key
+      value = tostring(set.value)
     }
   }
 }
@@ -39,31 +44,11 @@ resource "helm_release" "minio_tenant" {
 
   depends_on = [helm_release.minio_operator]
 
-  set {
-    name  = "tenant.name"
-    value = var.tenant_name
-  }
-
-  set {
-    name  = "tenant.pools[0].servers"
-    value = tostring(var.tenant_servers)
-  }
-
-  set {
-    name  = "tenant.pools[0].volumesPerServer"
-    value = tostring(var.tenant_volumes_per_server)
-  }
-
-  set {
-    name  = "tenant.pools[0].size"
-    value = var.tenant_volume_size
-  }
-
   dynamic "set" {
-    for_each = var.additional_tenant_configs
+    for_each = merge(local.tenant_settings, var.additional_tenant_configs)
     content {
-      name  = set.value.name
-      value = set.value.value
+      name  = set.key
+      value = tostring(set.value)
     }
   }
 }
