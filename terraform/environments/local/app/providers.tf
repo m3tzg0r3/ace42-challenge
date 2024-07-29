@@ -17,12 +17,12 @@ terraform {
 
 provider "kubernetes" {
   config_path    = "~/.kube/config"
-  config_context = "ace42-local"
+  config_context = var.environment
 }
 
 provider "helm" {
   kubernetes {
     config_path    = "~/.kube/config"
-    config_context = "ace42-local"
+    config_context = var.environment
   }
 }

@@ -21,5 +21,15 @@ This section serves as kind of a step by step log of what i did to make this wor
  4. Switch to helm charts, start with MinIO.
  5. Read Documentation about MinIO, find helm chart to deploy MinIO operator - follow that. (https://min.io/docs/minio/kubernetes/upstream/operations/install-deploy-manage/deploy-operator-helm.html#)
  6. Build terraform module to install MinIO operator.
- 7. 
+ 7. Read documentation about MinIO chart configuration options to integrate.
+ 8. Build tf module to setup the MinIO tenant so the gif is downloaded and put into the tenant bucket.
+ 9. 
+ 
+ 
+ 
+ ## Issues
+ 
+ - Managing the minikube cluster together with the other resources induces dependency hell where the kubectl context is not available to track the k8s resources if the minikube cluster is destroyed completely
+ 
+ 
 

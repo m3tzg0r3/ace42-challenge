@@ -42,7 +42,7 @@ resource "helm_release" "minio_tenant" {
   create_namespace = true
   version          = var.chart_version
 
-  depends_on = [helm_release.minio_operator]
+  depends_on = [ helm_release.minio_operator ]
 
   dynamic "set" {
     for_each = merge(local.tenant_settings, var.additional_tenant_configs)
