@@ -29,28 +29,39 @@ resource "kubernetes_config_map" "minio_setup_script" {
   data = {
     "setup.sh" = <<-EOT
       #!/bin/sh
-      set -e
+      set -ex  # Add -x for verbose logging
 
-      # Install mc and curl
+      echo "Starting setup script..."
+
+      echo "Installing mc and curl..."
       apk add --no-cache wget curl
 
-      # Download MinIO client
+      echo "Downloading MinIO client..."
       wget https://dl.min.io/client/mc/release/linux-amd64/mc
       chmod +x mc
       mv mc /usr/local/bin/
 
-      # Configure MinIO client
-      mc alias set myminio ${var.minio_endpoint} $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+      echo "Configuring MinIO client..."
+      # Variant using K8S Secrets
+      # mc alias set myminio ${var.minio_endpoint} $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+      # Variant using default credentials
+      mc alias set myminio ${var.minio_endpoint} minio minio123
 
-      # Create bucket
+      # echo "Adding new service user"
+      # mc admin user add myminio $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+      # mc admin policy attach myminio readwrite --user=$MINIO_ACCESS_KEY
+
+      echo "Creating bucket..."
       mc mb myminio/${var.bucket_name}
 
-      # Download file from URL and upload to MinIO
+      echo "Downloading and uploading file..."
       curl -L ${var.file_url} -o /tmp/downloaded_file
       mc cp /tmp/downloaded_file myminio/${var.bucket_name}/${var.file_name}
 
-      # Clean up
+      echo "Cleaning up..."
       rm /tmp/downloaded_file
+
+      echo "Setup complete!"
     EOT
   }
 }

@@ -22,7 +22,7 @@ variable "tenants_enabled" {
 variable "console_enabled" {
   description = "Enable console"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "create_tenant" {
@@ -78,4 +78,24 @@ variable "additional_tenant_configs" {
   description = "Additional set configurations for the tenant"
   type        = map(string)
   default     = {}
+}
+
+variable "minio_endpoint" {
+  description = "MinIO endpoint URL"
+  type        = string
+}
+
+variable "bucket_name" {
+  description = "Name of the bucket to create in MinIO"
+  type        = string
+}
+
+variable "file_url" {
+  description = "URL of the file to be downloaded and uploaded to MinIO"
+  type        = string
+}
+
+variable "file_name" {
+  description = "Name to give the file when uploading to MinIO"
+  type        = string
 }
