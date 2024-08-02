@@ -6,20 +6,21 @@ locals {
   }
 
   tenant_settings = {
-    "secrets.existingSecret"            = kubernetes_secret.minio_root_config_env.metadata[0].name
-    "tenant.configuration.name"         = kubernetes_secret.minio_root_config_env.metadata[0].name
-    "tenant.name"                       = var.tenant_name
-    "tenant.pools[0].name"              = var.tenant_pool_name
-    "tenant.pools[0].servers"           = var.tenant_servers
-    "tenant.pools[0].volumesPerServer"  = var.tenant_volumes_per_server
-    "tenant.pools[0].size"              = var.tenant_volume_size
-    "tenant.users[0].name"              = kubernetes_secret.minio_user_credentials.metadata[0].name
-    "tenant.metrics.enabled"            = "true"
-    "tenant.metrics.port"               = "8000"
-    "tenant.metrics.protocol"           = "http"
-    "tenant.prometheusOperator"         = "true"
-    # "tenant.ingress.api.enabled"        = true
-    "tenant.exposeServices.minio"       = "true"
+    "secrets.existingSecret"             = kubernetes_secret.minio_root_config_env.metadata[0].name
+    "tenant.configuration.name"          = kubernetes_secret.minio_root_config_env.metadata[0].name
+    "tenant.name"                         = var.tenant_name
+    "tenant.pools[0].name"                = var.tenant_pool_name
+    "tenant.pools[0].servers"             = var.tenant_servers
+    "tenant.pools[0].volumesPerServer"    = var.tenant_volumes_per_server
+    "tenant.pools[0].size"                = var.tenant_volume_size
+    "tenant.users[0].name"                = kubernetes_secret.minio_user_credentials.metadata[0].name
+    "tenant.metrics.enabled"              = "true"
+    "tenant.metrics.port"                 = "8000"
+    "tenant.metrics.protocol"             = "http"
+    "tenant.certificate.requestAutoCert"  = "false"
+    "tenant.prometheusOperator"           = "true"
+    # "tenant.ingress.api.enabled"          = true
+    "tenant.exposeServices.minio"         = "true"
   }
 }
 
@@ -80,6 +81,18 @@ resource "kubernetes_secret" "minio_root_credentials" {
     secretkey = random_password.minio_root_secret_key.result
   }
 }
+
+# resource "kubernetes_secret" "minio_root_credentials" {
+#   metadata {
+#     name      = "${var.tenant_name}-root"
+#     namespace = var.tenant_namespace
+#   }
+#
+#   data = {
+#     accesskey = "minio"
+#     secretkey = "minio123"
+#   }
+# }
 
 
 resource "kubernetes_secret" "minio_user_credentials" {
@@ -157,19 +170,39 @@ resource "kubernetes_config_map" "minio_setup_script" {
       chmod +x mc
       mv mc /usr/local/bin/
 
+      # FIXME this does not work :E
+      # echo "Checking for service availability..."
+      # while true; do
+      #   if curl -s --head "${var.minio_endpoint}/minio/health/live" > /dev/null; then
+      #     echo "Service is reachable!"
+      #     break
+      #   else
+      #     echo "Service is not reachable. Waiting 5 seconds..."
+      #     sleep 5
+      #   fi
+      # done
+
       echo "Configuring MinIO client..."
-      # Variant using K8S Secrets
       mc alias set myminio ${var.minio_endpoint} $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
 
       echo "Creating bucket..."
-      mc mb myminio/${var.bucket_name}
+      mc mb --ignore-existing myminio/${var.bucket_name}
 
-      echo "Downloading and uploading file..."
+      echo "Downloading gif and uploading index.html..."
+
       curl -L ${var.file_url} -o /tmp/downloaded_file
-      mc cp /tmp/downloaded_file myminio/${var.bucket_name}/${var.file_name}
 
-      echo "Cleaning up..."
-      rm /tmp/downloaded_file
+      cat <<EOF > /tmp/index.html
+      <!DOCTYPE html>
+      <html>
+        <body>
+          <meta http-equiv="refresh" content="0;URL='/${var.file_name}'">
+        </body>
+      </html>
+      EOF
+
+      mc cp /tmp/downloaded_file myminio/${var.bucket_name}/${var.file_name}
+      mc cp /tmp/index.html myminio/${var.bucket_name}/index.html
 
       echo "Setup complete!"
     EOT
@@ -241,6 +274,7 @@ resource "kubernetes_job" "minio_setup" {
   depends_on = [
     helm_release.minio_tenant,
     kubernetes_secret.minio_user_credentials,
+    kubernetes_secret.minio_root_credentials,
     kubernetes_config_map.minio_setup_script
 
   ]

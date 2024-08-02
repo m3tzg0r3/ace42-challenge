@@ -1,0 +1,26 @@
+replicaCount: 1
+
+image:
+  repository: y4m4/s3www
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+s3:
+  endpoint: "http://minio.default.svc.cluster.local:9000"
+  bucket: "bucket"
+  accessKey: "minio"
+  secretKey: "minio123"
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
